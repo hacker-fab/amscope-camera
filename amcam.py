@@ -1,5 +1,5 @@
 # Versin: 50.19367.20210815
-# We use ctypes to call into the amcam.dll/libamcam.so/libamcam.dylib API,
+# We use ctypes to call into the dll/libamcam.so/libamcam.dylib API,
 # the python class Amcam is a thin wrapper class to the native api of amcam.dll/libamcam.so/libamcam.dylib.
 # So the manual en.html(English) and hans.html(Simplified Chinese) are also applicable for programming with amcam.py.
 # See them in the 'doc' directory:

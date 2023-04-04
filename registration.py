@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QLabel, QApplication, QWidget, QDesktopWidget, QChec
 import numpy as np
 import cv2
 
+global prevImgArray
 prevImgArray = None # use this to store the previous frame's image
 
 # crop to 510x510 square at center of image
@@ -28,15 +29,26 @@ def QImageToCvMat(incomingImage):
     return arr
 
 # run registration algorithm using opencv
-def runRegistration(currImgArray):
+def runRegistration(currImgArray, prevImgArray):
     # do registration stuff
+    # grayscale+float conversions
+    gray1 = np.float32(cv2.cvtColor(currImgArray, cv2.COLOR_BGR2GRAY))
+    gray2 = np.float32(cv2.cvtColor(prevImgArray, cv2.COLOR_BGR2GRAY))
 
+    # Calculate phase correlation
+    (dx, dy), _ = cv2.phaseCorrelate(gray1, gray2)
 
+    # Get image size
+    height, width = currImgArray.shape[:2]
 
+    # Calculate number of pixels mapped in X and Y directions
+    num_pixels_x = dx * width
+    num_pixels_y = dy * height
 
-
+    print("Number of pixels mapped in X direction:", num_pixels_x)
+    print("Number of pixels mapped in Y direction:", num_pixels_y)
     # save this frame's array data for the next frame of registration
-    prevImgArray = currImgArray
+    return num_pixels_x, num_pixels_y
 
 class MainWin(QWidget):
     eventImage = pyqtSignal()
@@ -85,7 +97,17 @@ class MainWin(QWidget):
                 img = cropImage(img) # now that we have a new image, crop it to a square
                 self.label.setPixmap(QPixmap.fromImage(img))
                 imgMat = QImageToCvMat(img) # convert from img to numpy format
-                runRegistration(imgMat) # run registration algorithm to compare to previous frame
+                
+                global prevImgArray
+                
+                if prevImgArray is not None:
+                    px,py = runRegistration(imgMat, prevImgArray) # run registration algorithm to compare to previous frame
+                else: 
+                    px,py = 1,2
+                print(px, py)
+                
+                prevImgArray = imgMat
+                
 
     def initCamera(self):
         a = amcam.Amcam.EnumV2()
